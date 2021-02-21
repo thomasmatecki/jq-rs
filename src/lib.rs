@@ -170,6 +170,9 @@ pub struct JqProgram {
     jq: jq::Jq,
 }
 
+unsafe impl Send for JqProgram {}
+unsafe impl Sync for JqProgram {}
+
 impl JqProgram {
     /// Runs a json string input against a pre-compiled jq program.
     pub fn run(&mut self, data: &str) -> Result<String> {
