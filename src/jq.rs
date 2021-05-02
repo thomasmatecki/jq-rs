@@ -19,6 +19,15 @@ pub struct Jq {
     err_buf: String,
 }
 
+impl Clone for Jq {
+    fn clone(&self) -> Self {
+        Jq {
+            state: self.state,
+            err_buf: self.err_buf.clone(),
+        }
+    }
+}
+
 impl Jq {
     pub fn compile_program(program: CString) -> Result<Self> {
         let mut jq = Jq {
@@ -37,11 +46,15 @@ impl Jq {
             err_buf: "".to_string(),
         };
 
-        extern fn err_cb(data: *mut c_void, msg: jv) {
+        extern "C" fn err_cb(data: *mut c_void, msg: jv) {
             unsafe {
                 let formatted = jq_format_error(msg);
                 let jq = &mut *(data as *mut Jq);
-                jq.err_buf += &(CStr::from_ptr(jv_string_value(formatted)).to_str().unwrap_or("").to_string() + "\n");
+                jq.err_buf += &(CStr::from_ptr(jv_string_value(formatted))
+                    .to_str()
+                    .unwrap_or("")
+                    .to_string()
+                    + "\n");
                 jv_free(formatted);
             }
         }

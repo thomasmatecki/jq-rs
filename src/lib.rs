@@ -166,6 +166,7 @@ pub fn run(program: &str, data: &str) -> Result<String> {
 }
 
 /// A pre-compiled jq program which can be run against different inputs.
+#[derive(Clone)]
 pub struct JqProgram {
     jq: jq::Jq,
 }
