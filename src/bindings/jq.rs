@@ -1,0 +1,242 @@
+use crate::bindings::jv::jv;
+use crate::bindings::jv::jv_parser;
+
+pub const JQ_DEBUG_TRACE: _bindgen_ty_2 = 1;
+pub const JQ_DEBUG_TRACE_DETAIL: _bindgen_ty_2 = 2;
+pub const JQ_DEBUG_TRACE_ALL: _bindgen_ty_2 = 3;
+pub type _bindgen_ty_2 = u32;
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jq_state {
+    _unused: [u8; 0],
+}
+pub type jq_msg_cb =
+    ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void, arg2: jv)>;
+extern "C" {
+    pub fn jq_init() -> *mut jq_state;
+}
+extern "C" {
+    pub fn jq_set_error_cb(arg1: *mut jq_state, arg2: jq_msg_cb, arg3: *mut ::std::os::raw::c_void);
+}
+extern "C" {
+    pub fn jq_get_error_cb(
+        arg1: *mut jq_state,
+        arg2: *mut jq_msg_cb,
+        arg3: *mut *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn jq_set_nomem_handler(
+        arg1: *mut jq_state,
+        arg2: ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void)>,
+        arg3: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn jq_format_error(msg: jv) -> jv;
+}
+extern "C" {
+    pub fn jq_report_error(arg1: *mut jq_state, arg2: jv);
+}
+extern "C" {
+    pub fn jq_compile(
+        arg1: *mut jq_state,
+        arg2: *const ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn jq_compile_args(
+        arg1: *mut jq_state,
+        arg2: *const ::std::os::raw::c_char,
+        arg3: jv,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn jq_dump_disassembly(arg1: *mut jq_state, arg2: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn jq_start(arg1: *mut jq_state, value: jv, arg2: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn jq_next(arg1: *mut jq_state) -> jv;
+}
+extern "C" {
+    pub fn jq_teardown(arg1: *mut *mut jq_state);
+}
+extern "C" {
+    pub fn jq_halt(arg1: *mut jq_state, arg2: jv, arg3: jv);
+}
+extern "C" {
+    pub fn jq_halted(arg1: *mut jq_state) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn jq_get_exit_code(arg1: *mut jq_state) -> jv;
+}
+extern "C" {
+    pub fn jq_get_error_message(arg1: *mut jq_state) -> jv;
+}
+pub type jq_input_cb = ::std::option::Option<
+    unsafe extern "C" fn(arg1: *mut jq_state, arg2: *mut ::std::os::raw::c_void) -> jv,
+>;
+extern "C" {
+    pub fn jq_set_input_cb(
+        arg1: *mut jq_state,
+        arg2: jq_input_cb,
+        arg3: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn jq_get_input_cb(
+        arg1: *mut jq_state,
+        arg2: *mut jq_input_cb,
+        arg3: *mut *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn jq_set_debug_cb(arg1: *mut jq_state, arg2: jq_msg_cb, arg3: *mut ::std::os::raw::c_void);
+}
+extern "C" {
+    pub fn jq_get_debug_cb(
+        arg1: *mut jq_state,
+        arg2: *mut jq_msg_cb,
+        arg3: *mut *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
+    pub fn jq_set_attrs(arg1: *mut jq_state, arg2: jv);
+}
+extern "C" {
+    pub fn jq_get_attrs(arg1: *mut jq_state) -> jv;
+}
+extern "C" {
+    pub fn jq_get_jq_origin(arg1: *mut jq_state) -> jv;
+}
+extern "C" {
+    pub fn jq_get_prog_origin(arg1: *mut jq_state) -> jv;
+}
+extern "C" {
+    pub fn jq_get_lib_dirs(arg1: *mut jq_state) -> jv;
+}
+extern "C" {
+    pub fn jq_set_attr(arg1: *mut jq_state, arg2: jv, arg3: jv);
+}
+extern "C" {
+    pub fn jq_get_attr(arg1: *mut jq_state, arg2: jv) -> jv;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jq_util_input_state {
+    _unused: [u8; 0],
+}
+pub type jq_util_msg_cb = ::std::option::Option<
+    unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void, arg2: *const ::std::os::raw::c_char),
+>;
+extern "C" {
+    pub fn jq_util_input_init(
+        arg1: jq_util_msg_cb,
+        arg2: *mut ::std::os::raw::c_void,
+    ) -> *mut jq_util_input_state;
+}
+extern "C" {
+    pub fn jq_util_input_set_parser(
+        arg1: *mut jq_util_input_state,
+        arg2: *mut jv_parser,
+        arg3: ::std::os::raw::c_int,
+    );
+}
+extern "C" {
+    pub fn jq_util_input_free(arg1: *mut *mut jq_util_input_state);
+}
+extern "C" {
+    pub fn jq_util_input_add_input(
+        arg1: *mut jq_util_input_state,
+        arg2: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn jq_util_input_errors(arg1: *mut jq_util_input_state) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn jq_util_input_next_input(arg1: *mut jq_util_input_state) -> jv;
+}
+extern "C" {
+    pub fn jq_util_input_next_input_cb(
+        arg1: *mut jq_state,
+        arg2: *mut ::std::os::raw::c_void,
+    ) -> jv;
+}
+extern "C" {
+    pub fn jq_util_input_get_position(arg1: *mut jq_state) -> jv;
+}
+extern "C" {
+    pub fn jq_util_input_get_current_filename(arg1: *mut jq_state) -> jv;
+}
+extern "C" {
+    pub fn jq_util_input_get_current_line(arg1: *mut jq_state) -> jv;
+}
+extern "C" {
+    pub fn jq_set_colors(arg1: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+pub type __builtin_va_list = [__va_list_tag; 1usize];
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct __va_list_tag {
+    pub gp_offset: ::std::os::raw::c_uint,
+    pub fp_offset: ::std::os::raw::c_uint,
+    pub overflow_arg_area: *mut ::std::os::raw::c_void,
+    pub reg_save_area: *mut ::std::os::raw::c_void,
+}
+#[test]
+fn bindgen_test_layout___va_list_tag() {
+    assert_eq!(
+        ::std::mem::size_of::<__va_list_tag>(),
+        24usize,
+        concat!("Size of: ", stringify!(__va_list_tag))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<__va_list_tag>(),
+        8usize,
+        concat!("Alignment of ", stringify!(__va_list_tag))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__va_list_tag>())).gp_offset as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__va_list_tag),
+            "::",
+            stringify!(gp_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__va_list_tag>())).fp_offset as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__va_list_tag),
+            "::",
+            stringify!(fp_offset)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__va_list_tag>())).overflow_arg_area as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__va_list_tag),
+            "::",
+            stringify!(overflow_arg_area)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<__va_list_tag>())).reg_save_area as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(__va_list_tag),
+            "::",
+            stringify!(reg_save_area)
+        )
+    );
+}

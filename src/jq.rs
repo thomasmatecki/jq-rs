@@ -3,7 +3,7 @@
 //!
 //! These are building blocks and not intended for use from the public API.
 
-use crate::bindings::{
+use crate::bindings::jq::{
     jq_compile,
     jq_format_error,
     jq_get_exit_code,
@@ -14,24 +14,14 @@ use crate::bindings::{
     jq_start,
     jq_state, // --
     jq_teardown,
-    jv,
-    jv_copy,
-    jv_dump_string,
-    jv_free,
-    jv_get_kind,
-    jv_invalid_get_msg,
-    jv_invalid_has_msg,
-    jv_kind_JV_KIND_INVALID,
-    jv_kind_JV_KIND_NUMBER,
-    jv_kind_JV_KIND_STRING,
-    jv_number_value,
-    jv_parser,
-    jv_parser_free,
-    jv_parser_new,
-    jv_parser_next,
-    jv_parser_set_buf,
-    jv_string_value,
 };
+
+use crate::bindings::jv::{
+    jv, jv_copy, jv_dump_string, jv_free, jv_get_kind, jv_invalid_get_msg, jv_invalid_has_msg,
+    jv_kind_JV_KIND_INVALID, jv_kind_JV_KIND_NUMBER, jv_kind_JV_KIND_STRING, jv_number_value,
+    jv_parser, jv_parser_free, jv_parser_new, jv_parser_next, jv_parser_set_buf, jv_string_value,
+};
+
 use crate::errors::{Error, Result};
 // use libc;
 use std::ffi::{CStr, CString};
