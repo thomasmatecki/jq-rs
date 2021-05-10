@@ -16,8 +16,6 @@ default = ["pkg-config"]
 bundled = ["jq-src"]
 
 [dependencies]
-# jq-sys = "0.2.*"
-libc = "0.2.94"
 
 [dev-dependencies]
 criterion = "0.2"

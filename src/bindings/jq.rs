@@ -1,18 +1,92 @@
 use crate::bindings::jv::jv;
 use crate::bindings::jv::jv_parser;
+use std::os::raw::c_int;
+use std::os::raw::c_uchar;
+use std::os::raw::c_uint;
+use std::os::raw::c_ushort;
+use std::os::raw::c_void;
 
 pub const JQ_DEBUG_TRACE: _bindgen_ty_2 = 1;
 pub const JQ_DEBUG_TRACE_DETAIL: _bindgen_ty_2 = 2;
 pub const JQ_DEBUG_TRACE_ALL: _bindgen_ty_2 = 3;
 pub type _bindgen_ty_2 = u32;
 
+pub type cfunction_ptr = Option<unsafe extern "C" fn() -> ()>;
+
+pub type stack_ptr = c_uchar;
+
+#[derive(Copy, Clone)]
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct jq_state {
-    _unused: [u8; 0],
+pub struct stack {
+    pub mem_end: *mut c_uchar,
+    pub bound: stack_ptr,
+    pub limit: stack_ptr,
 }
-pub type jq_msg_cb =
-    ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void, arg2: jv)>;
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct cfunction {
+    pub fptr: cfunction_ptr,
+    pub name: *const c_uchar,
+    pub nargs: c_int,
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct symbol_table {
+    pub cfunctions: *mut cfunction,
+    pub ncfunctions: c_int,
+    pub cfunc_names: jv,
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct bytecode {
+    pub code: *mut c_ushort,
+    pub codelen: c_int,
+    pub nlocals: c_int,
+    pub nclosures: c_int,
+    pub constants: jv,
+    pub globals: *mut symbol_table,
+    pub subfunctions: *mut *mut bytecode,
+    pub nsubfunctions: c_int,
+    pub parent: *mut bytecode,
+    pub debuginfo: jv,
+}
+
+pub type jq_msg_cb = Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void, arg2: jv)>;
+
+pub type jq_input_cb =
+    Option<unsafe extern "C" fn(arg1: *mut jq_state, arg2: *mut ::std::os::raw::c_void) -> jv>;
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct jq_state {
+    pub nomem_handler: Option<unsafe extern "C" fn(_: *mut c_void) -> ()>,
+    pub nomem_handler_data: *mut c_void,
+    pub bc: *mut bytecode,
+    pub err_cb: jq_msg_cb,
+    pub err_cb_data: *mut c_void,
+    pub error: jv,
+    pub stk: stack,
+    pub curr_frame: stack_ptr,
+    pub stk_top: stack_ptr,
+    pub fork_top: stack_ptr,
+    pub path: jv,
+    pub value_at_path: jv,
+    pub subexp_nest: c_int,
+    pub debug_trace_enabled: c_int,
+    pub initial_execution: c_int,
+    pub next_label: c_uint,
+    pub halted: c_int,
+    pub exit_code: jv,
+    pub error_message: jv,
+    pub attrs: jv,
+    pub input_cb: jq_input_cb,
+    pub input_cb_data: *mut c_void,
+    pub debug_cb: jq_msg_cb,
+    pub debug_cb_data: *mut c_void,
+}
 extern "C" {
     pub fn jq_init() -> *mut jq_state;
 }
@@ -76,9 +150,6 @@ extern "C" {
 extern "C" {
     pub fn jq_get_error_message(arg1: *mut jq_state) -> jv;
 }
-pub type jq_input_cb = ::std::option::Option<
-    unsafe extern "C" fn(arg1: *mut jq_state, arg2: *mut ::std::os::raw::c_void) -> jv,
->;
 extern "C" {
     pub fn jq_set_input_cb(
         arg1: *mut jq_state,
