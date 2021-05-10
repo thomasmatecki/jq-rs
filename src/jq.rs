@@ -3,16 +3,119 @@
 //!
 //! These are building blocks and not intended for use from the public API.
 
-use crate::errors::{Error, Result};
-use jq_sys::{
-    jq_compile, jq_format_error, jq_get_exit_code, jq_halted, jq_init, jq_next, jq_set_error_cb,
-    jq_start, jq_state, jq_teardown, jv, jv_copy, jv_dump_string, jv_free, jv_get_kind,
-    jv_invalid_get_msg, jv_invalid_has_msg, jv_kind_JV_KIND_INVALID, jv_kind_JV_KIND_NUMBER,
-    jv_kind_JV_KIND_STRING, jv_number_value, jv_parser, jv_parser_free, jv_parser_new,
-    jv_parser_next, jv_parser_set_buf, jv_string_value,
+use crate::bindings::{
+    jq_compile,
+    jq_format_error,
+    jq_get_exit_code,
+    jq_halted,
+    jq_init,
+    jq_next,
+    jq_set_error_cb,
+    jq_start,
+    jq_state, // --
+    jq_teardown,
+    jv,
+    jv_copy,
+    jv_dump_string,
+    jv_free,
+    jv_get_kind,
+    jv_invalid_get_msg,
+    jv_invalid_has_msg,
+    jv_kind_JV_KIND_INVALID,
+    jv_kind_JV_KIND_NUMBER,
+    jv_kind_JV_KIND_STRING,
+    jv_number_value,
+    jv_parser,
+    jv_parser_free,
+    jv_parser_new,
+    jv_parser_next,
+    jv_parser_set_buf,
+    jv_string_value,
 };
+use crate::errors::{Error, Result};
+// use libc;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
+/**
+ *
+ *
+ *
+ * pub type cfunction_ptr = Option<unsafe extern "C" fn() -> ()>;
+ * pub type uint16_t = libc::c_ushort;
+ *
+ * pub type jq_msg_cb = Option<unsafe extern "C" fn(_: *mut libc::c_void, _: jv) -> ()>;
+ * pub type jq_input_cb = Option<unsafe extern "C" fn(_: *mut jq_state, _: *mut libc::c_void) -> jv>;
+ *
+ * pub type stack_ptr = libc::c_int;
+ *
+ * #[derive(Copy, Clone)]
+ * #[repr(C)]
+ * pub struct stack {
+ *     pub mem_end: *mut libc::c_char,
+ *     pub bound: stack_ptr,
+ *     pub limit: stack_ptr,
+ * }
+ *
+ * #[derive(Copy, Clone)]
+ * #[repr(C)]
+ * pub struct cfunction {
+ *     pub fptr: cfunction_ptr,
+ *     pub name: *const libc::c_char,
+ *     pub nargs: libc::c_int,
+ * }
+ *
+ * #[derive(Copy, Clone)]
+ * #[repr(C)]
+ * pub struct symbol_table {
+ *     pub cfunctions: *mut cfunction,
+ *     pub ncfunctions: libc::c_int,
+ *     pub cfunc_names: jv,
+ * }
+ *
+ * #[derive(Copy, Clone)]
+ * #[repr(C)]
+ * pub struct bytecode {
+ *     pub code: *mut uint16_t,
+ *     pub codelen: libc::c_int,
+ *     pub nlocals: libc::c_int,
+ *     pub nclosures: libc::c_int,
+ *     pub constants: jv,
+ *     pub globals: *mut symbol_table,
+ *     pub subfunctions: *mut *mut bytecode,
+ *     pub nsubfunctions: libc::c_int,
+ *     pub parent: *mut bytecode,
+ *     pub debuginfo: jv,
+ * }
+ *
+ * pub struct jq_state {
+ *     pub nomem_handler: Option<unsafe extern "C" fn(_: *mut libc::c_void) -> ()>,
+ *     pub nomem_handler_data: *mut libc::c_void,
+ *     pub bc: *mut bytecode,
+ *     pub err_cb: jq_msg_cb,
+ *     pub err_cb_data: *mut libc::c_void,
+ *     pub error: jv,
+ *     pub stk: stack,
+ *     pub curr_frame: stack_ptr,
+ *     pub stk_top: stack_ptr,
+ *     pub fork_top: stack_ptr,
+ *     pub path: jv,
+ *     pub value_at_path: jv,
+ *     pub subexp_nest: libc::c_int,
+ *     pub debug_trace_enabled: libc::c_int,
+ *     pub initial_execution: libc::c_int,
+ *     pub next_label: libc::c_uint,
+ *     pub halted: libc::c_int,
+ *     pub exit_code: jv,
+ *     pub error_message: jv,
+ *     pub attrs: jv,
+ *     pub input_cb: jq_input_cb,
+ *     pub input_cb_data: *mut libc::c_void,
+ *     pub debug_cb: jq_msg_cb,
+ *     pub debug_cb_data: *mut libc::c_void,
+ * }
+ *
+ *
+ */
 
 pub struct Jq {
     state: *mut jq_state,
@@ -37,11 +140,15 @@ impl Jq {
             err_buf: "".to_string(),
         };
 
-        extern fn err_cb(data: *mut c_void, msg: jv) {
+        extern "C" fn err_cb(data: *mut c_void, msg: jv) {
             unsafe {
                 let formatted = jq_format_error(msg);
                 let jq = &mut *(data as *mut Jq);
-                jq.err_buf += &(CStr::from_ptr(jv_string_value(formatted)).to_str().unwrap_or("").to_string() + "\n");
+                jq.err_buf += &(CStr::from_ptr(jv_string_value(formatted))
+                    .to_str()
+                    .unwrap_or("")
+                    .to_string()
+                    + "\n");
                 jv_free(formatted);
             }
         }

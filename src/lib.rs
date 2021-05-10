@@ -143,11 +143,16 @@
 
 #![deny(missing_docs)]
 
-extern crate jq_sys;
+// extern crate jq_sys;
 #[cfg(test)]
 #[macro_use]
 extern crate serde_json;
 
+#[allow(non_upper_case_globals)]
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(dead_code)]
+mod bindings;
 mod errors;
 mod jq;
 
