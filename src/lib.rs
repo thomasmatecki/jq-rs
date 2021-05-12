@@ -171,9 +171,13 @@ pub fn run(program: &str, data: &str) -> Result<String> {
 }
 
 /// A pre-compiled jq program which can be run against different inputs.
+#[derive(Clone)]
 pub struct JqProgram {
     jq: jq::Jq,
 }
+
+unsafe impl Send for JqProgram {}
+unsafe impl Sync for JqProgram {}
 
 impl JqProgram {
     /// Runs a json string input against a pre-compiled jq program.

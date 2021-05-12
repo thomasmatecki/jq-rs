@@ -26,6 +26,7 @@ use crate::errors::{Error, Result};
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
 
+#[derive(Clone)]
 pub struct Jq {
     state: *mut jq_state,
     err_buf: String,
