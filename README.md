@@ -1,4 +1,4 @@
-# jq-rs
+# Fork of jq-rs for fun
 
 [![crates.io](https://img.shields.io/crates/v/jq-rs.svg)](https://crates.io/crates/jq-rs)
 [![crates.io](https://img.shields.io/crates/d/jq-rs.svg)](https://crates.io/crates/jq-rs)
