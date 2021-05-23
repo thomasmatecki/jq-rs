@@ -157,6 +157,7 @@ mod errors;
 mod jq;
 
 use std::ffi::CString;
+use std::sync::Arc;
 
 pub use errors::{Error, Result};
 
@@ -173,15 +174,21 @@ pub fn run(program: &str, data: &str) -> Result<String> {
 /// A pre-compiled jq program which can be run against different inputs.
 #[derive(Clone)]
 pub struct JqProgram {
-    jq: jq::Jq,
+    /// Ref count to state. Contains callbacks stack pointer & bytecode
+    pub jq: Arc<jq::Jq>,
 }
 
 unsafe impl Send for JqProgram {}
 unsafe impl Sync for JqProgram {}
 
 impl JqProgram {
+    /// Create new program
+    pub fn new(program: &str) -> Self {
+        compile(program).unwrap()
+    }
+
     /// Runs a json string input against a pre-compiled jq program.
-    pub fn run(&mut self, data: &str) -> Result<String> {
+    pub fn run(&self, data: &str) -> Result<String> {
         if data.trim().is_empty() {
             // During work on #4, #7, the parser test which allows us to avoid a memory
             // error shows that an empty input just yields an empty response BUT our
@@ -189,7 +196,17 @@ impl JqProgram {
             return Ok("".into());
         }
         let input = CString::new(data)?;
-        self.jq.execute(input)
+
+        let mut jq = self.jq.clone().as_ref().clone();
+        jq.execute(input)
+    }
+}
+
+impl Drop for JqProgram {
+    fn drop(&mut self) {
+        let mut jq = self.jq.clone().as_ref().clone();
+        jq.teardown();
+        drop(jq);
     }
 }
 
@@ -197,7 +214,10 @@ impl JqProgram {
 pub fn compile(program: &str) -> Result<JqProgram> {
     let prog = CString::new(program)?;
     Ok(JqProgram {
-        jq: jq::Jq::compile_program(prog)?,
+        jq: {
+            let jq = jq::Jq::compile_program(prog)?;
+            Arc::new(jq)
+        },
     })
 }
 
@@ -211,7 +231,7 @@ mod test {
     #[test]
     fn reuse_compiled_program() {
         let query = r#"if . == 0 then "zero" elif . == 1 then "one" else "many" end"#;
-        let mut prog = compile(&query).unwrap();
+        let prog = compile(&query).unwrap();
         assert_eq!(prog.run("2").unwrap(), "\"many\"\n");
         assert_eq!(prog.run("1").unwrap(), "\"one\"\n");
         assert_eq!(prog.run("0").unwrap(), "\"zero\"\n");
@@ -225,8 +245,8 @@ mod test {
 
         // Basically this test is just to check that the state pointers returned by
         // `jq::init()` are completely independent and don't share any global state.
-        let mut prog1 = compile(&query1).unwrap();
-        let mut prog2 = compile(&query2).unwrap();
+        let prog1 = compile(&query1).unwrap();
+        let prog2 = compile(&query2).unwrap();
 
         assert_eq!(prog1.run(input).unwrap(), "\"foo\"\n");
         assert_eq!(prog2.run(input).unwrap(), "123\n");
@@ -335,7 +355,7 @@ mod test {
 
         #[test]
         fn missing_field_access_compiled() {
-            let mut prog = compile(".[] | .hello").unwrap();
+            let prog = compile(".[] | .hello").unwrap();
             let data = "[1,2,3]";
             let res = prog.run(data);
             assert_matches!(res, Err(Error::System { .. }));

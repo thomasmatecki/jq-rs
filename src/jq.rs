@@ -46,6 +46,10 @@ extern "C" fn err_cb(data: *mut c_void, msg: jv) {
 }
 
 impl Jq {
+    pub fn teardown(&mut self) {
+        unsafe { jq_teardown(&mut self.state) }
+    }
+
     pub fn compile_program(program: CString) -> Result<Self> {
         let mut jq = Jq {
             state: {
@@ -124,14 +128,6 @@ impl Jq {
         }
 
         Ok(buf)
-    }
-}
-
-impl Drop for Jq {
-    fn drop(&mut self) {
-        let s = format!("dropping {:p}", self);
-        println!("{}", &s);
-        unsafe { jq_teardown(&mut self.state) }
     }
 }
 
